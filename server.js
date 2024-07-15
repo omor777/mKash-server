@@ -1,10 +1,11 @@
 import express from "express";
 import connectDb from "./db.js";
-
+import routes from "./src/routes/index.js";
 const app = express();
 const port = process.env.PORT || 4000;
 
 app.use(express.json());
+app.use(routes);
 
 app.get("/", (_req, res) => {
   res.status(200).json({ success: true });
