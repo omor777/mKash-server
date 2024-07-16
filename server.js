@@ -1,11 +1,19 @@
 import express from "express";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import connectDb from "./db.js";
 import routes from "./src/routes/index.js";
 const app = express();
 const port = process.env.PORT || 4000;
 
 app.use(express.json());
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://localhost:5174"],
+    credentials: true,
+    optionsSuccessStatus: 200,
+  })
+);
 app.use(cookieParser());
 app.use(routes);
 

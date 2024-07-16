@@ -25,7 +25,7 @@ const registerController = async (req, res, next) => {
     });
     await user.save();
 
-    res.status(201).json(user);
+    res.status(201).json({ success: true, user });
   } catch (e) {
     next(e);
   }
@@ -60,13 +60,13 @@ const loginController = async (req, res, next) => {
       { expiresIn: "30d" }
     );
     // Set the token in a cookie
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
+    // res.cookie("token", token, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: "strict",
+    // });
 
-    res.status(200).json({ message: "Login Successfully", user });
+    res.status(200).json({ success: true, user,token });
   } catch (e) {
     next(e);
   }

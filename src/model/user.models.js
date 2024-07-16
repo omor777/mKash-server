@@ -9,6 +9,7 @@ const userSchema = new Schema(
     pin: {
       type: String,
       required: true,
+      min: [5, "Pin Code Minimum 5 digit Required!"],
     },
     mobile_number: {
       type: String,
