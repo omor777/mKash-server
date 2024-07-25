@@ -2,16 +2,30 @@ import User from "../model/user.models.js";
 import error from "../utils/error.js";
 
 const getAllUsersController = async (req, res, next) => {
+  console.log(req.query.page);
   const search = req.query?.search || "";
+  const page = parseInt(req.query?.page) || 1;
+  const limit = parseInt(req.query?.limit) || 10;
   try {
     const query = {
       name: { $regex: search, $options: "i" },
       role: { $ne: "ADMIN" },
     };
 
-    const users = await User.find(query);
+    const totalItems = await User.countDocuments(query);
+    const totalPages = Math.ceil(totalItems / limit);
 
-    res.status(200).json(users);
+    const users = await User.find(query)
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.status(200).json({
+      totalItems,
+      totalPages,
+      currentPage: page,
+      pageSize: limit,
+      users,
+    });
   } catch (e) {
     next(e);
   }
