@@ -26,7 +26,7 @@ const transactionSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["PENDING", "COMPLETED", "FAILED"],
+      enum: ["PENDING", "COMPLETED"],
     },
     fee: {
       type: Number,

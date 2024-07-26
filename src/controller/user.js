@@ -2,7 +2,6 @@ import User from "../model/user.models.js";
 import error from "../utils/error.js";
 
 const getAllUsersController = async (req, res, next) => {
-  console.log(req.query.page);
   const search = req.query?.search || "";
   const page = parseInt(req.query?.page) || 1;
   const limit = parseInt(req.query?.limit) || 10;
