@@ -90,8 +90,6 @@ const cashOutController = async (req, res, next) => {
       throw error("Do not have sufficient balance", 400);
     }
 
-    user.balance -= balance + fee;
-
     const cashOut = new Transaction({
       transaction_type,
       amount: balance + fee,
@@ -102,7 +100,6 @@ const cashOutController = async (req, res, next) => {
       status: "PENDING",
     });
 
-    await user.save();
     await cashOut.save();
 
     res.status(201).json({
@@ -114,4 +111,40 @@ const cashOutController = async (req, res, next) => {
   }
 };
 
-export { sendMoneyController, cashOutController };
+const getAgentTransactionController = async (req, res, next) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  try {
+    if (req.user.role !== "AGENT") {
+      throw error("This route only agent can access", 400);
+    }
+    const transactions = await Transaction.find({
+      to: req.user.id,
+    })
+      .populate("from")
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const transactionCount = await Transaction.countDocuments({
+      to: req.user.id,
+    });
+
+    const hasMore = page * limit < transactionCount;
+
+    res.status(200).json({
+      success: true,
+      data: transactions,
+      totalPages: Math.ceil(transactionCount / limit),
+      currentPage: page,
+      hasMore,
+    });
+  } catch (e) {
+    next(e);
+  }
+};
+
+export {
+  sendMoneyController,
+  cashOutController,
+  getAgentTransactionController,
+};

@@ -10,7 +10,7 @@ const transactionSchema = new Schema(
       type: Number,
       required: true,
     },
-    
+
     transaction_id: {
       type: String,
       required: true,
@@ -27,7 +27,7 @@ const transactionSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["PENDING", "COMPLETED"],
+      enum: ["PENDING", "COMPLETED", "FAILED"],
     },
     fee: {
       type: Number,
