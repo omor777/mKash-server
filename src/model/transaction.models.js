@@ -10,6 +10,7 @@ const transactionSchema = new Schema(
       type: Number,
       required: true,
     },
+    
     transaction_id: {
       type: String,
       required: true,

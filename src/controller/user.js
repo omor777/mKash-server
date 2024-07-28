@@ -30,6 +30,19 @@ const getAllUsersController = async (req, res, next) => {
   }
 };
 
+const getSingleUserController = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      throw error("User not found", 404);
+    }
+
+    res.status(200).json(user);
+  } catch (e) {
+    next(e);
+  }
+};
+
 const updateStatusController = async (req, res, next) => {
   const { userId } = req.params;
 
@@ -59,4 +72,8 @@ const updateStatusController = async (req, res, next) => {
   }
 };
 
-export { getAllUsersController, updateStatusController };
+export {
+  getAllUsersController,
+  updateStatusController,
+  getSingleUserController,
+};
