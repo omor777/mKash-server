@@ -249,10 +249,35 @@ const TransactionApprovedController = async (req, res, next) => {
   }
 };
 
+const getAllTransactionHistoryController = async (req, res, next) => {
+  try {
+    if (req.user.role === "USER") {
+      throw error("User can not access this route", 400);
+    }
+    let transactions;
+    if (req.user.role === "ADMIN") {
+      transactions = await Transaction.find({ status: "COMPLETED" })
+        .populate("from")
+        .populate("to");
+    } else {
+      transactions = await Transaction.find({ status: "COMPLETED" })
+        .sort({
+          createdAt: -1,
+        })
+        .limit(20)
+        .populate("from");
+    }
+    res.status(200).json({success:true,data:transactions});
+  } catch (e) {
+    next(e);
+  }
+};
+
 export {
   sendMoneyController,
   cashOutController,
   cashInController,
   getAgentTransactionController,
   TransactionApprovedController,
+  getAllTransactionHistoryController,
 };

@@ -3,6 +3,7 @@ import {
   cashInController,
   cashOutController,
   getAgentTransactionController,
+  getAllTransactionHistoryController,
   sendMoneyController,
   TransactionApprovedController,
 } from "../controller/transaction.js";
@@ -21,5 +22,8 @@ router.post("/cashIn", authentication, cashInController);
 
 // approved transaction request
 router.patch("/agent/:id", authentication, TransactionApprovedController);
+
+// see all transaction history
+router.get("/history", authentication, getAllTransactionHistoryController);
 
 export default router;
