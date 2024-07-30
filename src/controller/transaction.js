@@ -92,7 +92,7 @@ const cashOutController = async (req, res, next) => {
 
     const cashOut = new Transaction({
       transaction_type,
-      amount: balance + fee,
+      amount: balance,
       transaction_id,
       from: user._id,
       to: agentUser._id,
@@ -105,6 +105,53 @@ const cashOutController = async (req, res, next) => {
     res.status(201).json({
       success: true,
       message: "Cashout request successful wait for agent approval",
+    });
+  } catch (e) {
+    next(e);
+  }
+};
+
+const cashInController = async (req, res, next) => {
+  const { pin, agent_number, balance, transaction_type } = req.body;
+
+  const transaction_id = uuidv4();
+
+  try {
+    if (!pin || !agent_number || !balance || !transaction_type) {
+      throw error("All input field are required", 400);
+    }
+    const agentUser = await User.findOne({ mobile_number: agent_number });
+    const user = await User.findById(req.user.id);
+
+    if (!agentUser) {
+      throw error("Phone number is incorrect", 404);
+    }
+    if (agentUser.role !== "AGENT") {
+      throw error("Please provide an agent number", 400);
+    }
+    if (balance < 50) {
+      throw error("Amount minimum 50tk required", 400);
+    }
+
+    const isMatch = await checkHashPassword({ pass: pin, hashPass: user.pin });
+    if (!isMatch) {
+      throw error("Pin is incorrect!", 400);
+    }
+
+    const cashOut = new Transaction({
+      transaction_type,
+      amount: balance,
+      transaction_id,
+      from: user._id,
+      to: agentUser._id,
+      status: "PENDING",
+    });
+
+    await cashOut.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Cashin request successful wait for agent approval",
     });
   } catch (e) {
     next(e);
@@ -143,8 +190,69 @@ const getAgentTransactionController = async (req, res, next) => {
   }
 };
 
+const TransactionApprovedController = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    if (req.user.role !== "AGENT") {
+      throw error("Unauthorized access", 401);
+    }
+
+    const transaction = await Transaction.findById(id);
+    const user = await User.findById(transaction.from);
+    const agent = await User.findById(req.user.id);
+
+    if (!transaction) {
+      throw error("Document not found", 404);
+    }
+    if (!user) {
+      throw error("User not found", 404);
+    }
+    if (!agent) {
+      throw error("User not found", 404);
+    }
+
+    if (transaction.transaction_type === "cashOut") {
+      if (user.balance < transaction.amount + transaction.fee) {
+        transaction.status = "FAILED";
+        await transaction.save();
+        throw error("User do not have sufficient balance");
+      }
+
+      user.balance -= transaction.amount + transaction.fee;
+      agent.balance += transaction.amount + transaction.fee;
+      transaction.status = "COMPLETED";
+    } else {
+      // check if agent have sufficient balance
+      if (agent.balance < transaction.amount) {
+        transaction.status = "FAILED";
+        await transaction.save();
+        throw error("Agent do not have sufficient balance", 400);
+      } else {
+        user.balance += transaction.amount;
+        agent.balance -= transaction.amount;
+        transaction.status = "COMPLETED";
+      }
+    }
+
+    const message =
+      transaction.transaction_type === "cashOut"
+        ? "Cashout successful"
+        : "Cashin successful";
+
+    await user.save();
+    await agent.save();
+    await transaction.save();
+
+    res.status(200).json({ success: true, message });
+  } catch (e) {
+    next(e);
+  }
+};
+
 export {
   sendMoneyController,
   cashOutController,
+  cashInController,
   getAgentTransactionController,
+  TransactionApprovedController,
 };
