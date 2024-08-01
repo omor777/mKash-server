@@ -250,24 +250,42 @@ const TransactionApprovedController = async (req, res, next) => {
 };
 
 const getAllTransactionHistoryController = async (req, res, next) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+
   try {
     if (req.user.role === "USER") {
       throw error("User can not access this route", 400);
     }
-    let transactions;
+
     if (req.user.role === "ADMIN") {
-      transactions = await Transaction.find({ status: "COMPLETED" })
+      const transactions = await Transaction.find({ status: "COMPLETED" })
+        .skip((page - 1) * limit)
+        .limit(limit)
         .populate("from")
         .populate("to");
+      const totalCounts = await Transaction.countDocuments({
+        status: "COMPLETED",
+      });
+      const hasMore = page * limit < totalCounts;
+
+      res.status(200).json({
+        success: true,
+        data: transactions,
+        currentPage: page,
+        totalPages: Math.ceil(totalCounts / limit),
+        hasMore,
+      });
     } else {
-      transactions = await Transaction.find({ status: "COMPLETED" })
+      const transactions = await Transaction.find({ status: "COMPLETED" })
         .sort({
           createdAt: -1,
         })
         .limit(20)
         .populate("from");
+
+      res.status(200).json({ success: true, data: transactions });
     }
-    res.status(200).json({success:true,data:transactions});
   } catch (e) {
     next(e);
   }

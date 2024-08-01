@@ -8,7 +8,7 @@ import {
 import authentication from "../middleware/authentication.js";
 const router = express.Router();
 
-router.get("/", getAllUsersController);
+router.get("/", authentication, getAllUsersController);
 
 router.get("/single", authentication, getSingleUserController);
 

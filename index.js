@@ -1,4 +1,6 @@
 import express from "express";
+import dotenv from "dotenv";
+dotenv.config();
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import connectDb from "./db.js";
@@ -23,7 +25,8 @@ app.use((err, _req, res, _next) => {
 });
 
 // Connect to the database first, then start the server
-connectDb("mongodb://127.0.0.1:27017/finance")
+const mongoUrl = process.env.MONGO_URL;
+connectDb(mongoUrl)
   .then(() => {
     console.log("Database connected");
     app.listen(port, () => {

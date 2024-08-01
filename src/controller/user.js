@@ -6,6 +6,10 @@ const getAllUsersController = async (req, res, next) => {
   const page = parseInt(req.query?.page) || 1;
   const limit = parseInt(req.query?.limit) || 10;
   try {
+    console.log(req.user);
+    if (req.user.role !== "ADMIN") {
+      throw error("Unauthorized access", 401);
+    }
     const query = {
       name: { $regex: search, $options: "i" },
       role: { $ne: "ADMIN" },
